@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #Internal Packages
+    'videodata.apps.VideodataConfig',
     #External Packages
     'rest_framework'
 ]
