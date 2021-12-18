@@ -1,14 +1,18 @@
+import json
 from decouple import config
 import argparse
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import threading
+import urllib.request
 
 
 DEVELOPER_KEY = config('DEVELOPER_KEY', cast=str)
 YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
+def download_image(url, file_name):
+    urllib.request.urlretrieve(url, file_name)
 
 def youtube_search(options):
   youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
@@ -26,8 +30,28 @@ def youtube_search(options):
   ).execute()
 
   videos = []
-  print(search_response.get('items', []))
-  items = search_response.get('items', [])
+  # print(search_response.get('items', []))
+  search_items = search_response.get('items', [])
+  # json_data = json.loads(items[0])
+  images = []
+  
+  for item in search_items:
+    for thumbnails in item['snippet']['thumbnails'].values():
+      images.append(thumbnails)
+  threads = []
+  for image in images:
+    t = threading.Thread(target=download_image, args=( image['url'], image['url'].split('/')[-1] ,  ))
+    threads.append(t)
+    t.start()
+    t.join()
+
+  # for thread in threads:
+  #   thread.start()
+  # for thread in threads:
+  #   thread.join()
+
+  
+
   # high_thumbnail = items[0]['snippet']['thumbnails']['high']['url']
   # default_thumbnail = items[0]['snippet']['thumbnails']['default']['url']
   # standard_thumbnail = items[0]['snippet']['thumbnails']['standard']['url']
@@ -51,9 +75,6 @@ def youtube_search(options):
   # print ('Videos:\n', '\n'.join(videos), '\n')
 
 
-def download_image(url, file_name):
-    import urllib.request
-    urllib.request.urlretrieve(url, file_name)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
