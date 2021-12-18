@@ -86,7 +86,7 @@ Save thumbnail images for the particular video data object
           except:
               # idelly log the failed request
               continue
-          tmodel = ThumbnailModel(title=type,
+          tmodel = ThumbnailModel(type=type,
                                   width=int(thumb['width']),
                                   height=int(thumb['width']))
           tmodel.video = vdata

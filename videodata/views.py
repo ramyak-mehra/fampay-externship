@@ -1,6 +1,7 @@
 from .serializer import VideoDataSerializer
 from .models import VideoDataModel
-from rest_framework import viewsets
+from .pagination import VideoDataCursorPagination
+from rest_framework import pagination, viewsets
 
 """
 We are using viewsets.ReadOnlyModelViewSet 
@@ -13,4 +14,5 @@ class VideoDataViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = VideoDataModel.objects.all()
     serializer_class = VideoDataSerializer
+    pagination_class  = VideoDataCursorPagination
 
