@@ -13,7 +13,7 @@ class VideoDataModel(models.Model):
     def __str__(self) -> str:
         return f"{self.title}_{self.video_id}"
 class ThumbnailModel(models.Model):
-    video = models.ForeignKey(VideoDataModel, on_delete=models.CASCADE)
+    video = models.ForeignKey(VideoDataModel, related_name='thumbnails', on_delete=models.CASCADE)
     title = models.CharField(max_length=20)
     image = models.ImageField(upload_to='thumbnails')
     width = models.IntegerField()
