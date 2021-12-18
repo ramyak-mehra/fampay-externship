@@ -14,7 +14,7 @@ class VideoDataModel(models.Model):
         return f"{self.title}_{self.video_id}"
 class ThumbnailModel(models.Model):
     video = models.ForeignKey(VideoDataModel, on_delete=models.CASCADE)
-    tite = models.CharField(max_length=20)
+    title = models.CharField(max_length=20)
     image = models.ImageField(upload_to='thumbnails')
     width = models.IntegerField()
     height = models.IntegerField()
