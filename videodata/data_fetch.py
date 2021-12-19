@@ -1,13 +1,12 @@
+from datetime import timedelta
 from decouple import config,Csv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import threading
-from django.utils.dateparse import parse_datetime
+from django.utils.dateparse import  parse_datetime
 import urllib.request
 from .models import VideoDataModel, ThumbnailModel
-from django.utils.timezone import is_aware, make_aware
+from django.utils.timezone import is_aware, make_aware , now
 from django.core.files import File
-import os
 
 DEVELOPER_KEY = config('DEVELOPER_KEY', cast=Csv())
 YOUTUBE_API_SERVICE_NAME = 'youtube'
@@ -26,7 +25,10 @@ class YoutubeAPIClient():
       self.query = query
       self.pageToken = pageToken
       self.max_results = max_results
-      self.publishedAfter = publishedAfter
+      if publishedAfter != None:
+        self.publishedAfter = publishedAfter
+      else:
+        self.publishedAfter = now()
       self.apiKeyIndex = 0
       self.apiKeyIndexMaxValue=len(DEVELOPER_KEY)-1
       self.maxTries = config('MAX_TRIES', default=1, cast=int)
@@ -50,18 +52,19 @@ class YoutubeAPIClient():
     for item in result:
       self.__load_data(item)
 
+  def __update_publishedAfter(self):
+    self.publishedAfter = self.publishedAfter + timedelta(days=1)
+
+
   def __update_api_key_index(self):
     if self.apiKeyIndex < self.apiKeyIndexMaxValue:
       self.apiKeyIndex +=1
     else:
       self.apiKeyIndex = 0
       self.__update_try_count()
+  
   def __update_try_count(self):
     self.tryCount += 1
-  def __upadate_token(self , pageToken=None):
-    self.pageToken = pageToken
-    os.environ['NEXT_PAGE_TOKEN'] = pageToken
-
 
   def __youtube_search(self):
       youtube = build(YOUTUBE_API_SERVICE_NAME,
@@ -70,17 +73,18 @@ class YoutubeAPIClient():
 
       # Call the search.list method to retrieve results matching the specified
       # query term.
+      t = self.publishedAfter.isoformat()
       search_response = youtube.search().list(
           q=self.query,
           part='id,snippet',
           type='video',
           order='date',
-          publishedAfter=self.publishedAfter,
+          publishedAfter=self.publishedAfter.isoformat(),
           pageToken=self.pageToken,
           maxResults=self.max_results).execute()
 
       result_items = search_response.get('items', [])
-      self.__upadate_token(pageToken=search_response['nextPageToken'])
+      self.__update_publishedAfter()
       return result_items
 
   """
@@ -117,20 +121,3 @@ Save thumbnail images for the particular video data object
           tmodel.video = vdata
           tmodel.image.save(thumb['url'].split('/')[-1],
                             File(open(result[0], 'rb')))
-
-  # images = []
-
-  # for item in result_items:
-  #   for thumbnails in item['snippet']['thumbnails'].values():
-  #     images.append(thumbnails)
-  # threads = []
-  # for image in images:
-  #   t = threading.Thread(target=download_image, args=( image['url'], image['url'].split('/')[-1] ,  ))
-  #   threads.append(t)
-  #   t.start()
-  #   t.join()
-
-  # for thread in threads:
-  #   thread.start()
-  # for thread in threads:
-  #   thread.join()
