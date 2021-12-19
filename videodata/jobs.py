@@ -1,3 +1,4 @@
+import schedule
 from .data_fetch import YoutubeAPIClient
 from schedule import Scheduler
 import threading
@@ -14,7 +15,6 @@ Reference :https://schedule.readthedocs.io/en/stable/background-execution.html
 def run_continuously(self, interval=1):
     cease_continuous_run = threading.Event()
     class ScheduleThread(threading.Thread):
-
         @classmethod
         def run(cls):
             while not cease_continuous_run.is_set():
@@ -28,8 +28,17 @@ def run_continuously(self, interval=1):
 # A little hack so that the Scheduler can use the custom run_continuously.
 Scheduler.run_continuously = run_continuously
 
-#start the scheduler.
-def start_scheduler(client):
-    scheduler = Scheduler()
-    scheduler.every(10).minutes.do(fetch_videos , client=client)
-    scheduler.run_continuously()
+#Schedule Job class to manage the jobs from anywhere.
+class ScheduleJob():
+    def __init__(self,client):
+        self.client = client
+        self.scheduler = Scheduler()
+
+    def start_scheduler(self,interval=1):
+        print('Starting scheduler')
+        self.job = self.scheduler.every(interval).second.do(fetch_videos , client=self.client)
+        self.scheduler.run_continuously()
+    
+    def stop_scheduler(self):
+        print('Stopping scheduler')
+        self.scheduler.clear()
