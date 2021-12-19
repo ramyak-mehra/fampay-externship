@@ -21,7 +21,16 @@ def get_aware_datetime(date_str):
 
 
 class YoutubeAPIClient():
-  def __init__(self, query=None, pageToken=None, max_results=None , publishedAfter=None , scheduleJob=None):
+  """
+  The youtubeapi client is used to fetch the video data from youtube.
+  The data is then stored in the database.
+  It rotates the api key index to fetch the next api key from the .env to avoid hitting the quota.
+  If the request fails it moves to the next.
+  If the request fails for all the api keys it retrires for maxTries times.
+  If it still failes then it stops the scheduler.
+  It also updates the publishedAfter date to fetch the next day's data after every request.
+  """
+  def __init__(self, query=None, pageToken=None, max_results=None , publishedAfter=None , scheduleJob=None , maxTries=None):
       self.query = query
       self.pageToken = pageToken
       self.max_results = max_results
@@ -31,7 +40,7 @@ class YoutubeAPIClient():
         self.publishedAfter = now()
       self.apiKeyIndex = 0
       self.apiKeyIndexMaxValue=len(DEVELOPER_KEY)-1
-      self.maxTries = config('MAX_TRIES', default=1, cast=int)
+      self.maxTries = maxTries
       self.tryCount = 0
       self.scheduleJob = scheduleJob
 

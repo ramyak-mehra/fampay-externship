@@ -14,8 +14,9 @@ class VideodataConfig(AppConfig):
             from .jobs import ScheduleJob
             client = YoutubeAPIClient(
                 query='Google',max_results=10,
-                pageToken=config('NEXT_PAGE_TOKEN', default=None)
+                pageToken=config('NEXT_PAGE_TOKEN', default=None),
+                maxTries=config('MAX_TRIES', default=1, cast=int)
             )
             scheduleJob = ScheduleJob(client)
             client.scheduleJob = scheduleJob
-            scheduleJob.start_scheduler()
+            scheduleJob.start_scheduler(10)
