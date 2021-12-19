@@ -1,5 +1,4 @@
 from decouple import config
-import argparse
 from django.db.models.fields import Field
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -9,6 +8,7 @@ import urllib.request
 from .models import VideoDataModel, ThumbnailModel
 from django.utils.timezone import is_aware, make_aware
 from django.core.files import File
+import os
 
 DEVELOPER_KEY = config('DEVELOPER_KEY', cast=str)
 YOUTUBE_API_SERVICE_NAME = 'youtube'
@@ -38,6 +38,8 @@ class YoutubeAPIClient():
 
   def __upadate_token(self , pageToken=None):
     self.pageToken = pageToken
+    os.environ['NEXT_PAGE_TOKEN'] = pageToken
+
 
   def __youtube_search(self):
       youtube = build(YOUTUBE_API_SERVICE_NAME,
@@ -51,6 +53,7 @@ class YoutubeAPIClient():
           part='id,snippet',
           type='video',
           order='date',
+          publishedBefore='2021-12-16T11:55:16Z',
           pageToken=self.pageToken,
           maxResults=self.max_results).execute()
 
