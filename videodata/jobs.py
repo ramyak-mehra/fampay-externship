@@ -36,7 +36,7 @@ class ScheduleJob():
 
     def start_scheduler(self,interval=1):
         print('Starting scheduler')
-        self.job = self.scheduler.every(interval).second.do(fetch_videos , client=self.client)
+        self.job = self.scheduler.every(interval).seconds.do(fetch_videos , client=self.client)
         self.scheduler.run_continuously()
     
     def stop_scheduler(self):
